@@ -11,7 +11,7 @@ Example:
     <body>
         <div id="my-app">
             <h1>This is cn.js</h1>
-            <button cn:click="data.count++">{{ data.count }}</button>
+            <button cn:click="data.count++">{{ count }}</button>
         </div>
         <script type="module">
             import {mount} from './cn.js'
@@ -22,3 +22,12 @@ Example:
 ```
 
 The framework was inspired by https://vuejs.org/
+
+## Quickstart
+
+To run the example you have to host the file cn.js and index.html with a simple webserver. 
+You can use python for that for example:
+
+    python -m http.server
+
+Than you can open this url: http://localhost:8000

@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <style>
+            .highlight {
+                font: 1rem monospace;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="test">
+            <h1>This is cn.js</h1>
+            <p>Chuck Norris would never use a Java Script Framework, he would write his own ;-)</p>
+            <div>
+                <button cn:click="data.buttonA.count++">{{ buttonA.name }}</button>
+            </div>
+            <p>
+                You clicked the "{{ buttonA.name }}" <span class="highlight">{{ buttonA.count }}</span> times!
+            </p>
+            <div>
+                <button cn:click="to('buttonB-topic', 'hello1')">{{ buttonB.name }} - {{ buttonB.count }}</button>
+            </div>
+            <p>
+                <span>
+                    This is a text: <span class="highlight">{{ text }}</span>
+                </span>
+                
+            </p>
+        </div>
+        <p>
+            <p>To get this running you have to host it with a webserver. Simply run:</p>
+
+            <div style="font-family:'Lucida Console', monospace">
+                python -m http.server
+            </div>
+            <p>And open the url <a href="http://localhost:8000">http://localhost:8000</a></p>
+        </p>
+        <script type="module">
+            import {mount} from './cn.js'
+            const app = mount('#test', {
+                'buttonA': {
+                    'name': 'Button A',
+                    'count': 0
+                },
+                'buttonB': {
+                    'name': 'Button B',
+                    'count': 0
+                },
+                'text': 'Hello World!'
+            })
+            app.on('buttonB-topic', (m) => { app.data.buttonB.count++ })
+        </script>
+    </body>
+</html>
