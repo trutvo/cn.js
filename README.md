@@ -20,3 +20,5 @@ Example:
     </body>
 </html>
 ```
+
+The framework was inspired by https://vuejs.org/
