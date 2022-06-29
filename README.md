@@ -11,7 +11,7 @@ Example:
     <body>
         <div id="my-app">
             <h1>This is cn.js</h1>
-            <button cn:click="data.count++">{{ count }}</button>
+            <button cn:click="count++">{{ count }}</button>
         </div>
         <script type="module">
             import {mount} from './cn.js'

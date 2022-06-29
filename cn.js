@@ -1,5 +1,13 @@
 const DATA_CHANNEL = 'cns::data'
 
+const evalWith = function(context, expr) {
+    const f = Function.apply(
+        null, Object.keys(context).concat('return (' + expr + ')')
+    )
+    
+    return f(...Object.values(context));
+}
+
 class EventDispatcher {
     constructor() {
         this.topics = new Map()
@@ -127,11 +135,13 @@ class App {
 
     #eval(code) {
         const app = this
-        function to(topic, message) {
-            app.to(topic, message)
+        const functions = {
+            to: function to(topic, message) {
+                app.to(topic, message)
+            }
         }
-        const data = this.data
-        eval(code)
+        const context = {...this.data, ...functions}
+        evalWith(context, code)
     }
 
     refresh() {

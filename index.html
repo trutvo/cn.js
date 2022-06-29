@@ -12,7 +12,7 @@
             <h1>This is cn.js</h1>
             <p>Chuck Norris would never use a Java Script Framework, he would write his own ;-)</p>
             <div>
-                <button cn:click="data.buttonA.count++">{{ buttonA.name }}</button>
+                <button cn:click="buttonA.count++">{{ buttonA.name }}</button>
             </div>
             <p>
                 You clicked the "{{ buttonA.name }}" <span class="highlight">{{ buttonA.count }}</span> times!
@@ -37,6 +37,7 @@
         </p>
         <script type="module">
             import {mount} from './cn.js'
+            
             const app = mount('#test', {
                 'buttonA': {
                     'name': 'Button A',
