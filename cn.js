@@ -8,6 +8,10 @@ const evalWith = function(context, expr) {
     return f(...Object.values(context));
 }
 
+function range(start, stop, step=1) {
+    return Array.from({ length: (stop - start) / step + 1}, (_, i) => start + (i * step))
+}
+
 class EventDispatcher {
     constructor() {
         this.topics = new Map()
@@ -46,6 +50,10 @@ function findValue(data, path) {
     return findRecusive(data, path.split('.'));
 }
 
+function cloneNodes(nodeList, deep=true) {
+    return Array.from(nodeList).map( n => n.cloneNode(deep) )
+}
+
 class DataHandler {
     constructor(path, onUpdate) {
         this.path = path
@@ -75,10 +83,10 @@ function utilizeObject(updateCallback, obj, path = "") {
 
 class TextNodeTemplate {
     constructor(data, textNode, template, pathList) {
+        this.data = data
         this.textNode = textNode
         this.template = template
         this.pathList = pathList
-        this.data = data
     }
 
     update() {
@@ -88,6 +96,24 @@ class TextNodeTemplate {
             text = text.replaceAll(new RegExp(`{{\\s*${path}\\s*}}`, 'g'), value)
         }
         this.textNode.textContent = text
+    }
+}
+
+class ForTemplate {
+    constructor(app, node, elementNodes, generator) {
+        this.app = app
+        this.node = node
+        this.elementNodes = elementNodes
+        this.generator = generator
+    }
+    
+    update() {
+        this.node.innerHTML = ''
+        this.app.eval(this.generator).forEach( it => this.#addElement(it) )
+    }
+
+    #addElement(it) {
+        cloneNodes(this.elementNodes).forEach( c => this.node.appendChild(c) )
     }
 }
 
@@ -105,6 +131,7 @@ class App {
         this.#initEvents()
 
         this.#createTemplates()
+        this.#createForTemplates()
 
         this.refresh()
         this.on(DATA_CHANNEL, (m) => { this.refresh() })
@@ -124,24 +151,39 @@ class App {
         }
     }
 
+    #createForTemplates() {
+        const for_nodes = document.querySelectorAll(`${this.rootSelector} *[cn\\:for]`)
+        const app = this
+        for (var node of for_nodes) {
+            if (node.hasChildNodes()) {
+                const generator = node.getAttribute('cn:for')
+                const children = cloneNodes(node.childNodes) 
+                this.templates.push(new ForTemplate(app, node, children, generator))
+                node.innerHTML = ''
+            }
+            node.removeAttribute('cn:for')
+        }
+    }
+
     #initEvents() {
         const click_elements = document.querySelectorAll(`${this.rootSelector} *[cn\\:click]`)
         for (var element of click_elements) {
             const action = element.getAttribute('cn:click')
-            element.addEventListener("click", () => { this.#eval(action) })
+            element.addEventListener("click", () => { this.eval(action) })
             element.removeAttribute('cn:click')
         }
     }
 
-    #eval(code) {
+    eval(code) {
         const app = this
         const functions = {
             to: function to(topic, message) {
                 app.to(topic, message)
-            }
+            },
+            range: range
         }
         const context = {...this.data, ...functions}
-        evalWith(context, code)
+        return evalWith(context, code)
     }
 
     refresh() {
