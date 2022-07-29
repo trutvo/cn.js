@@ -21,7 +21,14 @@ Example:
 </html>
 ```
 
-The framework was inspired by https://vuejs.org/
+The framework is inspired by https://vuejs.org/
+
+
+## TODO
+
+* for statement in the template `<ol cn:for="e in entries"<li>{{ e }}</li></ol>`
+* if statement in the template `<div cn:if="isTrue()">Hello</div>`
+
 
 ## Quickstart
 
