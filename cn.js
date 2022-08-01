@@ -8,8 +8,8 @@ const evalWith = function(context, expr) {
     return f(...Object.values(context));
 }
 
-function range(start, stop, step=1) {
-    return Array.from({ length: (stop - start) / step + 1}, (_, i) => start + (i * step))
+function range(start, stop) {
+    return Array.from({ length: stop - start}, (_, i) => start + i)
 }
 
 class EventDispatcher {
@@ -82,17 +82,19 @@ function utilizeObject(updateCallback, obj, path = "") {
 }
 
 class TextNodeTemplate {
-    constructor(data, textNode, template, pathList) {
-        this.data = data
+    constructor(app, localScope, textNode, template, pathList) {
+        this.app = app
         this.textNode = textNode
         this.template = template
         this.pathList = pathList
+        this.localScope = localScope
     }
 
     update() {
         var text = this.template
+        const data = {...this.app.data ,...this.localScope}
         for(var path of this.pathList) {
-            var value = findValue(this.data, path)
+            var value = findValue(data, path)
             text = text.replaceAll(new RegExp(`{{\\s*${path}\\s*}}`, 'g'), value)
         }
         this.textNode.textContent = text
@@ -100,20 +102,32 @@ class TextNodeTemplate {
 }
 
 class ForTemplate {
-    constructor(app, node, elementNodes, generator) {
+    constructor(app, localScope, node, elementNodes, generator) {
         this.app = app
         this.node = node
         this.elementNodes = elementNodes
         this.generator = generator
+        this.templates = []
+        this.localScope = localScope
+        this.node.innerHTML = ''
     }
     
     update() {
         this.node.innerHTML = ''
-        this.app.eval(this.generator).forEach( it => this.#addElement(it) )
+        this.templates = []
+        let list = this.app.eval(this.generator)
+        list.forEach( it => this.#addElement(it) )
+        this.app.initEvents(this.node, this.localScope)
+        this.templates.forEach( t => t.update() )
     }
 
     #addElement(it) {
-        cloneNodes(this.elementNodes).forEach( c => this.node.appendChild(c) )
+        for(let c of cloneNodes(this.elementNodes)) {
+            this.node.appendChild(c)
+            if(c.nodeType !== Node.TEXT_NODE) {
+                this.templates = this.templates.concat(this.app.createTemplates(c, {...this.localScope, ...{"it": it}}))
+            }
+        }
     }
 }
 
@@ -122,51 +136,57 @@ class App {
     constructor(rootSelector, data) {
         this.topics = new Map()
         this.eventDispatcher = new EventDispatcher()
-        this.templates = []
         this.rootSelector = rootSelector
 
         const onDataUpdate = (p, v) => this.to(DATA_CHANNEL, { type: 'UPDATE', name: p, value: v })
         this.data = utilizeObject(onDataUpdate, data)
       
-        this.#initEvents()
-
-        this.#createTemplates()
-        this.#createForTemplates()
+        const rootNode = document.querySelector(`${this.rootSelector}`)
+        this.initEvents(rootNode)
+        this.templates = this.createTemplates(rootNode)
 
         this.refresh()
         this.on(DATA_CHANNEL, (m) => { this.refresh() })
     }
 
-    #createTemplates() {
-        const root = document.querySelector(`${this.rootSelector}`)
-        const iter = document.createNodeIterator(root, NodeFilter.SHOW_TEXT)
-        var textNode
+    createTemplates(node, localScope={}) {
+        let templates =this.#createTextTemplates(node, localScope)
+        templates = templates.concat(this.#createForTemplates(node, localScope))
+        return templates
+    }
+
+    #createTextTemplates(node, localScope) {
+        const iter = document.createNodeIterator(node, NodeFilter.SHOW_TEXT)
+        let textNode
+        let templates = []
         while (textNode = iter.nextNode()) {
             const text = textNode.textContent
             const pathList = [...text.matchAll(/{{\s*([\w\.]+)\s*}}/g)].map( m => m[1])
             if(pathList.length > 0) {
-                const template = new TextNodeTemplate(this.data, textNode, text, pathList)
-                this.templates.push(template)
+                const template = new TextNodeTemplate(this, localScope, textNode, text, pathList)
+                templates.push(template)
             }
         }
+        return templates
     }
 
-    #createForTemplates() {
-        const for_nodes = document.querySelectorAll(`${this.rootSelector} *[cn\\:for]`)
-        const app = this
+    #createForTemplates(node, localScope) {
+        const for_nodes = node.querySelectorAll(`*[cn\\:for]`)
+        let templates = []
         for (var node of for_nodes) {
             if (node.hasChildNodes()) {
                 const generator = node.getAttribute('cn:for')
                 const children = cloneNodes(node.childNodes) 
-                this.templates.push(new ForTemplate(app, node, children, generator))
+                templates.push(new ForTemplate(this, localScope, node, children, generator))
                 node.innerHTML = ''
             }
             node.removeAttribute('cn:for')
         }
+        return templates
     }
 
-    #initEvents() {
-        const click_elements = document.querySelectorAll(`${this.rootSelector} *[cn\\:click]`)
+    initEvents(node, localScope={}) {
+        const click_elements = node.querySelectorAll(`*[cn\\:click]`)
         for (var element of click_elements) {
             const action = element.getAttribute('cn:click')
             element.addEventListener("click", () => { this.eval(action) })
@@ -174,7 +194,7 @@ class App {
         }
     }
 
-    eval(code) {
+    eval(code, localScope={}) {
         const app = this
         const functions = {
             to: function to(topic, message) {
@@ -182,7 +202,7 @@ class App {
             },
             range: range
         }
-        const context = {...this.data, ...functions}
+        const context = {...this.data, ...functions, ...localScope}
         return evalWith(context, code)
     }
 
