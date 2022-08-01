@@ -102,7 +102,7 @@ class ForTemplate {
     update() {
         this.node.innerHTML = ''
         this.templates = []
-        this.app.eval(this.generator).forEach( it => this.#addElement(it) )
+        this.app.eval(this.generator, this.localScope).forEach( it => this.#addElement(it) )
         this.app.initEvents(this.node, this.localScope)
         this.templates.forEach( t => t.update() )
     }
