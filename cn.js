@@ -49,23 +49,24 @@ class DataHandler {
     }
 
     set(obj, prop, value) {
-        var ref = this.path + prop
-        var result = Reflect.set(...arguments)
+        const ref = this.path + prop
+        const result = Reflect.set(...arguments)
         this.onUpdate(ref, value)
         return result
     }
 }
 
 function utilizeObject(updateCallback, obj, path = "") {
-    for (var prop in obj) {
+    for (let prop in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-            var value = obj[prop]
+            let value = obj[prop]
             if(typeof value === 'object' && value !== null) {
-                var newPath = path + prop + "."
+                let newPath = path + prop + "."
                 obj[prop] = utilizeObject(updateCallback, value, newPath)
             }
         }
     }
+
     return new Proxy(obj, new DataHandler(path, updateCallback));
 }
 
@@ -79,9 +80,8 @@ class TextNodeTemplate {
     }
 
     update() {
-        var text = this.template
-        const data = {...this.app.data ,...this.localScope}
-        for(var path of this.pathList) {
+        let text = this.template
+        for(let path of this.pathList) {
             text = text.replaceAll(`{{${path}}}`, this.app.eval(path, this.localScope))
         }
         this.textNode.textContent = text
@@ -102,8 +102,7 @@ class ForTemplate {
     update() {
         this.node.innerHTML = ''
         this.templates = []
-        let list = this.app.eval(this.generator)
-        list.forEach( it => this.#addElement(it) )
+        this.app.eval(this.generator).forEach( it => this.#addElement(it) )
         this.app.initEvents(this.node, this.localScope)
         this.templates.forEach( t => t.update() )
     }
@@ -119,7 +118,6 @@ class ForTemplate {
 }
 
 class App {
-
     constructor(rootSelector, data) {
         this.topics = new Map()
         this.eventDispatcher = new EventDispatcher()
@@ -145,7 +143,7 @@ class App {
     #createTextTemplates(node, localScope) {
         const iter = document.createNodeIterator(node, NodeFilter.SHOW_TEXT)
         let textNode
-        let templates = []
+        const templates = []
         while (textNode = iter.nextNode()) {
             const text = textNode.textContent
             const pathList = [...text.matchAll(/{{([\w\. \+\-\/\*]+)}}/g)].map( m => m[1])
@@ -154,13 +152,14 @@ class App {
                 templates.push(template)
             }
         }
+
         return templates
     }
 
     #createForTemplates(node, localScope) {
         const for_nodes = node.querySelectorAll(`*[cn\\:for]`)
-        let templates = []
-        for (var node of for_nodes) {
+        const templates = []
+        for (let node of for_nodes) {
             if (node.hasChildNodes()) {
                 const generator = node.getAttribute('cn:for')
                 const children = cloneNodes(node.childNodes) 
@@ -169,12 +168,13 @@ class App {
             }
             node.removeAttribute('cn:for')
         }
+
         return templates
     }
 
     initEvents(node, localScope={}) {
         const click_elements = node.querySelectorAll(`*[cn\\:click]`)
-        for (var element of click_elements) {
+        for (let element of click_elements) {
             const action = element.getAttribute('cn:click')
             element.addEventListener("click", () => { this.eval(action) })
             element.removeAttribute('cn:click')
@@ -189,12 +189,13 @@ class App {
             },
             range: range
         }
+
         const context = {...this.data, ...functions, ...localScope}
         return evalWith(context, code)
     }
 
     refresh() {
-        for(var t of this.templates) {
+        for(let t of this.templates) {
             t.update()
         }
     }
