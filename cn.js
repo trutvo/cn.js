@@ -38,18 +38,6 @@ class EventDispatcher {
     }
 }
 
-function findValue(data, path) {
-    function findRecusive(obj, propArray) {
-        const [head, ...tail] = propArray;
-        const value = obj[head] 
-        if(tail.length > 0) {
-            return findRecusive(value, tail);
-        }
-        return value;
-    }
-    return findRecusive(data, path.split('.'));
-}
-
 function cloneNodes(nodeList, deep=true) {
     return Array.from(nodeList).map( n => n.cloneNode(deep) )
 }
@@ -94,8 +82,7 @@ class TextNodeTemplate {
         var text = this.template
         const data = {...this.app.data ,...this.localScope}
         for(var path of this.pathList) {
-            var value = findValue(data, path)
-            text = text.replaceAll(new RegExp(`{{\\s*${path}\\s*}}`, 'g'), value)
+            text = text.replaceAll(`{{${path}}}`, this.app.eval(path, this.localScope))
         }
         this.textNode.textContent = text
     }
@@ -150,8 +137,8 @@ class App {
     }
 
     createTemplates(node, localScope={}) {
-        let templates =this.#createTextTemplates(node, localScope)
-        templates = templates.concat(this.#createForTemplates(node, localScope))
+        let templates = this.#createForTemplates(node, localScope)
+        templates = templates.concat(this.#createTextTemplates(node, localScope))
         return templates
     }
 
@@ -161,7 +148,7 @@ class App {
         let templates = []
         while (textNode = iter.nextNode()) {
             const text = textNode.textContent
-            const pathList = [...text.matchAll(/{{\s*([\w\.]+)\s*}}/g)].map( m => m[1])
+            const pathList = [...text.matchAll(/{{([\w\. \+\-\/\*]+)}}/g)].map( m => m[1])
             if(pathList.length > 0) {
                 const template = new TextNodeTemplate(this, localScope, textNode, text, pathList)
                 templates.push(template)
