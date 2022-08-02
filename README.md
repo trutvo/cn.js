@@ -12,6 +12,7 @@ Example:
         <div id="my-app">
             <h1>This is cn.js</h1>
             <button cn:click="count++">{{ count }}</button>
+            <span cn:if="count % 2 == 0">Count is even</span>
         </div>
         <script type="module">
             import {mount} from './cn.js'
@@ -22,13 +23,6 @@ Example:
 ```
 
 The framework is inspired by https://vuejs.org/
-
-
-## TODO
-
-* for statement in the template `<ol cn:for="e in entries"<li>{{ e }}</li></ol>`
-* if statement in the template `<div cn:if="isTrue()">Hello</div>`
-
 
 ## Quickstart
 
