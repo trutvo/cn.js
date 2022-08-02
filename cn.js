@@ -8,6 +8,27 @@ const evalWith = function(context, expr) {
     return f(...Object.values(context));
 }
 
+function getParentsBetween(rootNode, node, parents=[]) {
+    let p = node.parentNode
+    if(p != null) {
+        parents.push(p)
+        if(p != rootNode) {
+            getParentsBetween(rootNode, p, parents)
+        }
+    } 
+    return parents
+}
+
+function isNestedInFlowNode(rootNode, node) {
+    const parents =  getParentsBetween(rootNode, node)
+    for(let n of parents) {
+        if(n.getAttribute("cn:for")) {
+            return true
+        }
+    }
+    return false
+}
+
 function range(start, stop) {
     return Array.from({ length: stop - start}, (_, i) => start + i)
 }
@@ -135,7 +156,7 @@ class App {
     }
 
     createTemplates(node, localScope={}) {
-        let templates = this.#createForTemplates(node, localScope)
+        let templates = this.#createFlowTemplates(node, localScope)
         templates = templates.concat(this.#createTextTemplates(node, localScope))
         return templates
     }
@@ -156,15 +177,15 @@ class App {
         return templates
     }
 
-    #createForTemplates(node, localScope) {
-        const for_nodes = node.querySelectorAll(`*[cn\\:for]`)
+    #createFlowTemplates(rootNode, localScope) {
+        const for_nodes = rootNode.querySelectorAll(`*[cn\\:for]`)
+        const level_one_for_nodes = Array.from(for_nodes).filter(n => !isNestedInFlowNode(rootNode, n))
         const templates = []
-        for (let node of for_nodes) {
+        for (let node of level_one_for_nodes) {
             if (node.hasChildNodes()) {
                 const generator = node.getAttribute('cn:for')
                 const children = cloneNodes(node.childNodes) 
                 templates.push(new ForTemplate(this, localScope, node, children, generator))
-                node.innerHTML = ''
             }
             node.removeAttribute('cn:for')
         }

@@ -8,7 +8,7 @@
         </style>
     </head>
     <body>
-        <div id="test">
+        <div id="app">
             <h1>This is cn.js</h1>
             <p>Chuck Norris would never use a Java Script Framework, he would write his own ;-)</p>
             <div>
@@ -24,7 +24,8 @@
             <p>
                 Here is a list with {{ buttonA.count }} elements:
                 <ul cn:for="range(0, buttonA.count)">
-                    <li>this line was added after the "{{ buttonA.name }}" was pressed the {{ it + 1 }} times</li>
+                    <li>this line was added after the "{{ buttonA.name }}" was pressed the {{ it + 1 }} times 
+                        <span cn:for="range(0, it)">#</span></li>
                 </ul>
             </p>
             <p>
@@ -42,10 +43,11 @@
             </div>
             <p>And open the url <a href="http://localhost:8000">http://localhost:8000</a></p>
         </p>
+
         <script type="module">
             import {mount} from './cn.js'
             
-            const app = mount('#test', {
+            const app = mount('#app', {
                 'buttonA': {
                     'name': 'Button A',
                     'count': 0
