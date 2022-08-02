@@ -22,7 +22,7 @@ function getParentsBetween(rootNode, node, parents=[]) {
 function isNestedInFlowNode(rootNode, node) {
     const parents =  getParentsBetween(rootNode, node)
     for(let n of parents) {
-        if(n.getAttribute("cn:for")) {
+        if(n.getAttribute("cn:for") || n.getAttribute("cn:if")) {
             return true
         }
     }
@@ -91,13 +91,22 @@ function utilizeObject(updateCallback, obj, path = "") {
     return new Proxy(obj, new DataHandler(path, updateCallback));
 }
 
-class TextNodeTemplate {
-    constructor(app, localScope, textNode, template, pathList) {
-        this.app = app
-        this.textNode = textNode
+class AbstractTemplate {
+    constructor(app, localScope, node) {
+      if (new.target === AbstractTemplate) {
+        throw new TypeError("Cannot construct AbstractTemplate instances directly");
+      }
+      this.localScope = localScope
+      this.app = app
+      this.node = node
+    }
+  }
+
+class TextNodeTemplate extends AbstractTemplate {
+    constructor(app, localScope, node, template, pathList) {
+        super(app, localScope, node)
         this.template = template
         this.pathList = pathList
-        this.localScope = localScope
     }
 
     update() {
@@ -105,18 +114,16 @@ class TextNodeTemplate {
         for(let path of this.pathList) {
             text = text.replaceAll(`{{${path}}}`, this.app.eval(path, this.localScope))
         }
-        this.textNode.textContent = text
+        this.node.textContent = text
     }
 }
 
-class ForTemplate {
-    constructor(app, localScope, node, elementNodes, generator, varName="it") {
-        this.app = app
-        this.node = node
-        this.elementNodes = elementNodes
+class ForTemplate extends AbstractTemplate {
+    constructor(app, localScope, node, generator, varName="it") {
+        super(app, localScope, node)
+        this.elementNodes = cloneNodes(node.childNodes)
         this.generator = generator
         this.templates = []
-        this.localScope = localScope
         this.node.innerHTML = ''
         this.varName = varName
     }
@@ -135,6 +142,43 @@ class ForTemplate {
             const element = {}
             element[this.varName] = it
             const scope =  {...this.localScope, ...element}
+            if(c.nodeType == Node.TEXT_NODE) {
+                this.templates = this.templates.concat(this.app.createTextTemplates(c, scope))
+            } else {
+                this.templates = this.templates.concat(this.app.createTemplates(c, scope))
+            }
+        }
+    }
+}
+
+function getLevelOneNodes(rootNode, name) {
+    const for_nodes = rootNode.querySelectorAll(`*[cn\\:${name}]`)
+    return Array.from(for_nodes).filter(n => !isNestedInFlowNode(rootNode, n))
+}
+
+class IfTemplate extends AbstractTemplate {
+    constructor(app, localScope, node, condition) {
+        super(app, localScope, node)
+        this.condition = condition
+        this.node.innerHTML = ''
+        this.childNodes = cloneNodes(node.childNodes)
+        this.templates = []
+    }
+
+    update() {
+        this.node.innerHTML = ''
+        this.templates = []
+        if(this.app.eval(this.condition, this.localScope)) {
+            this.#addChildNodes()
+        }
+
+        this.app.initEvents(this.node, this.localScope)
+        this.templates.forEach( t => t.update() )
+    }
+
+    #addChildNodes() {
+        for(let c of cloneNodes(this.elementNodes)) {
+            this.node.appendChild(c)
             if(c.nodeType == Node.TEXT_NODE) {
                 this.templates = this.templates.concat(this.app.createTextTemplates(c, scope))
             } else {
@@ -163,8 +207,20 @@ class App {
 
     createTemplates(node, localScope={}) {
         let templates = this.#createForTemplates(node, localScope)
-        templates = templates.concat(this.#createTextTemplatesFromNode(node, localScope))
+                          .concat(this.#createTextTemplatesFromNode(node, localScope))
+                          .concat(this.#createIfTemplates(node, localScope))
+        this.#removeAttributes(node)
         return templates
+    }
+
+    #removeAttributes(rootNode) {
+        const nodes = getLevelOneNodes(rootNode, "for")
+                        .concat(getLevelOneNodes(rootNode, "If"))
+        for(let node of nodes) {
+            node.removeAttribute('cn:for')
+            node.removeAttribute('cn:for-var')
+            node.removeAttribute('cn:if')
+        }
     }
 
     #createTextTemplatesFromNode(node, localScope) {
@@ -191,8 +247,7 @@ class App {
     }
 
     #createForTemplates(rootNode, localScope) {
-        const for_nodes = rootNode.querySelectorAll(`*[cn\\:for]`)
-        const level_one_for_nodes = Array.from(for_nodes).filter(n => !isNestedInFlowNode(rootNode, n))
+        const level_one_for_nodes = getLevelOneNodes(rootNode, "for")
         const templates = []
         for (let node of level_one_for_nodes) {
             if (node.hasChildNodes()) {
@@ -201,11 +256,21 @@ class App {
                 if(!varName) {
                     varName = "it"
                 }
-                const children = cloneNodes(node.childNodes) 
-                templates.push(new ForTemplate(this, localScope, node, children, generator, varName))
+                templates.push(new ForTemplate(this, localScope, node, generator, varName))
             }
-            node.removeAttribute('cn:for')
-            node.removeAttribute('cn:for-var')
+        }
+
+        return templates
+    }
+
+    #createIfTemplates(rootNode, localScope) {
+        const level_one_for_nodes = getLevelOneNodes(rootNode, "if")
+        const templates = []
+        for (let node of level_one_for_nodes) {
+            if (node.hasChildNodes()) {
+                const condition = node.getAttribute('cn:if')
+                templates.push(new IfTemplate(this, localScope, node, condition))
+            }
         }
 
         return templates
