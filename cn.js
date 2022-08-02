@@ -110,7 +110,7 @@ class TextNodeTemplate {
 }
 
 class ForTemplate {
-    constructor(app, localScope, node, elementNodes, generator) {
+    constructor(app, localScope, node, elementNodes, generator, varName="it") {
         this.app = app
         this.node = node
         this.elementNodes = elementNodes
@@ -118,6 +118,7 @@ class ForTemplate {
         this.templates = []
         this.localScope = localScope
         this.node.innerHTML = ''
+        this.varName = varName
     }
     
     update() {
@@ -131,8 +132,13 @@ class ForTemplate {
     #addElement(it) {
         for(let c of cloneNodes(this.elementNodes)) {
             this.node.appendChild(c)
-            if(c.nodeType !== Node.TEXT_NODE) {
-                this.templates = this.templates.concat(this.app.createTemplates(c, {...this.localScope, ...{"it": it}}))
+            const element = {}
+            element[this.varName] = it
+            const scope =  {...this.localScope, ...element}
+            if(c.nodeType == Node.TEXT_NODE) {
+                this.templates = this.templates.concat(this.app.createTextTemplates(c, scope))
+            } else {
+                this.templates = this.templates.concat(this.app.createTemplates(c, scope))
             }
         }
     }
@@ -156,38 +162,50 @@ class App {
     }
 
     createTemplates(node, localScope={}) {
-        let templates = this.#createFlowTemplates(node, localScope)
-        templates = templates.concat(this.#createTextTemplates(node, localScope))
+        let templates = this.#createForTemplates(node, localScope)
+        templates = templates.concat(this.#createTextTemplatesFromNode(node, localScope))
         return templates
     }
 
-    #createTextTemplates(node, localScope) {
+    #createTextTemplatesFromNode(node, localScope) {
         const iter = document.createNodeIterator(node, NodeFilter.SHOW_TEXT)
         let textNode
-        const templates = []
+        let templates = []
         while (textNode = iter.nextNode()) {
-            const text = textNode.textContent
-            const pathList = [...text.matchAll(/{{([\w\. \+\-\/\*]+)}}/g)].map( m => m[1])
-            if(pathList.length > 0) {
-                const template = new TextNodeTemplate(this, localScope, textNode, text, pathList)
-                templates.push(template)
-            }
+            templates = templates.concat(this.createTextTemplates(textNode, localScope))
         }
 
         return templates
     }
 
-    #createFlowTemplates(rootNode, localScope) {
+    createTextTemplates(textNode, localScope) {
+        let templates = []
+        const text = textNode.textContent
+        const pathList = [...text.matchAll(/{{([\w\. \+\-\/\*]+)}}/g)].map( m => m[1])
+        if(pathList.length > 0) {
+            const template = new TextNodeTemplate(this, localScope, textNode, text, pathList)
+            templates.push(template)
+        }
+
+        return templates
+    }
+
+    #createForTemplates(rootNode, localScope) {
         const for_nodes = rootNode.querySelectorAll(`*[cn\\:for]`)
         const level_one_for_nodes = Array.from(for_nodes).filter(n => !isNestedInFlowNode(rootNode, n))
         const templates = []
         for (let node of level_one_for_nodes) {
             if (node.hasChildNodes()) {
                 const generator = node.getAttribute('cn:for')
+                let varName = node.getAttribute('cn:for-var')
+                if(!varName) {
+                    varName = "it"
+                }
                 const children = cloneNodes(node.childNodes) 
-                templates.push(new ForTemplate(this, localScope, node, children, generator))
+                templates.push(new ForTemplate(this, localScope, node, children, generator, varName))
             }
             node.removeAttribute('cn:for')
+            node.removeAttribute('cn:for-var')
         }
 
         return templates

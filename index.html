@@ -23,9 +23,9 @@
             </div>
             <p>
                 Here is a list with {{ buttonA.count }} elements:
-                <ul cn:for="range(0, buttonA.count)">
-                    <li>this line was added after the "{{ buttonA.name }}" was pressed the {{ it + 1 }} times 
-                        <span cn:for="range(0, it)">#</span></li>
+                <ul cn:for="range(0, buttonA.count)" cn:for-var="c">
+                    <li>this line was added after the "{{ buttonA.name }}" was pressed the {{ c + 1 }} times 
+                        <span cn:for="range(0, c)"> {{ it * buttonB.count }}</li>
                 </ul>
             </p>
             <p>
