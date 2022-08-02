@@ -18,6 +18,10 @@
             <p>
                 You clicked the "{{ buttonA.name }}" <span class="highlight">{{ buttonA.count }}</span> times!
             </p>
+            <p>
+                <span cn:if="buttonA.count % 2 == 0">Count of "{{ buttonA.name }}" is even</span>
+                <span cn:if="buttonA.count % 2 == 1">Count of "{{ buttonA.name }}" is odd</span>
+            </p>
             <div>
                 <button cn:click="to('buttonB-topic', 'hello1')">{{ buttonB.name }} - {{ buttonB.count }}</button>
             </div>

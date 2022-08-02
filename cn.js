@@ -160,15 +160,16 @@ class IfTemplate extends AbstractTemplate {
     constructor(app, localScope, node, condition) {
         super(app, localScope, node)
         this.condition = condition
-        this.node.innerHTML = ''
         this.childNodes = cloneNodes(node.childNodes)
         this.templates = []
+        this.node.innerHTML = ''
     }
 
     update() {
         this.node.innerHTML = ''
         this.templates = []
-        if(this.app.eval(this.condition, this.localScope)) {
+        const result = this.app.eval(this.condition, this.localScope)
+        if(result) {
             this.#addChildNodes()
         }
 
@@ -177,12 +178,12 @@ class IfTemplate extends AbstractTemplate {
     }
 
     #addChildNodes() {
-        for(let c of cloneNodes(this.elementNodes)) {
+        for(let c of cloneNodes(this.childNodes)) {
             this.node.appendChild(c)
             if(c.nodeType == Node.TEXT_NODE) {
-                this.templates = this.templates.concat(this.app.createTextTemplates(c, scope))
+                this.templates = this.templates.concat(this.app.createTextTemplates(c, this.localScope))
             } else {
-                this.templates = this.templates.concat(this.app.createTemplates(c, scope))
+                this.templates = this.templates.concat(this.app.createTemplates(c, this.localScope))
             }
         }
     }
