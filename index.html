@@ -38,6 +38,11 @@
                 </span>
                 
             </p>
+            <p>
+                <button cn:click="alertService.alert('Hi there')">
+                    Do some alerting
+                </button>
+            </p>
         </div>
         <p>
             <p>To get this running you have to host it with a webserver. Simply run:</p>
@@ -63,6 +68,13 @@
                 'text': 'Hello World!'
             })
             app.on('buttonB-topic', (m) => { app.data.buttonB.count++ })
+
+            class AlertService {
+                alert(msg) {
+                    alert(msg)
+                }
+            }
+            window.alertService = new AlertService()
         </script>
     </body>
 </html>
