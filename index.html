@@ -54,6 +54,12 @@
         </p>
 
         <script type="module">
+            class AlertService {
+                alert(msg) {
+                    alert(msg)
+                }
+            }
+
             import {mount} from './cn.js'
             
             const app = mount('#app', {
@@ -69,11 +75,6 @@
             })
             app.on('buttonB-topic', (m) => { app.data.buttonB.count++ })
 
-            class AlertService {
-                alert(msg) {
-                    alert(msg)
-                }
-            }
             window.alertService = new AlertService()
         </script>
     </body>

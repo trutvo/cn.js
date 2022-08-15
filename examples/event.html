@@ -1,0 +1,32 @@
+<html>
+    <head>
+        <style>
+            .highlight {
+                font: 1rem monospace;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <p>
+                <button cn:click="alertService.alert('Hi there')">
+                    Do some alerting
+                </button>
+            </p>
+        </div>
+
+        <script type="module">
+            class AlertService {
+                alert(msg) {
+                    alert(msg)
+                }
+            }
+
+            import {mount} from '../cn.js'
+
+            const app = mount('#app')
+            window.alertService = new AlertService()
+        </script>
+    </body>
+</html>

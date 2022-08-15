@@ -316,6 +316,6 @@ class App {
     }
 }
 
-export function mount(rootSelector, data) {
+export function mount(rootSelector, data={}) {
     return new App(rootSelector, data);
 }
