@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <style>
+            .highlight {
+                font: 1rem monospace;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <p>
+                <h2>My Music Store</h2>
+                <p>We have in store:</p>
+                <ul>
+                    <li>Guitars: {{ store.instrument.guitar.count }}</li>
+                    <li>Basses: {{ store.instrument.bass.count }}</li>
+                    <li>Drumsets: {{ store.instrument.drumset.count }}</li>
+                    <li>Flutes: {{ store.instrument.flute.count }}</li>
+                </ul>
+            </p>
+        </div>
+
+        <script type="module">
+            import {mount} from '../cn.js'
+
+            const data = {
+                store: {
+                    instrument: {
+                        guitar: { count: 20},
+                        bass: { count: 6},
+                        drumset: { count: 2},
+                        flute: { count: 40}
+                    }
+                }
+            }
+            
+            const app = mount('#app', data)
+        </script>
+    </body>
+</html>
