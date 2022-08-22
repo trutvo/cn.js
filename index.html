@@ -36,6 +36,7 @@
                 <span>
                     This is a text: <span class="highlight">{{ text }}</span>
                 </span>
+                <button cn:click="count++">Doenst work :-( - {{ count }}</button>
                 
             </p>
             <p>
@@ -71,7 +72,8 @@
                     'name': 'Button B',
                     'count': 0
                 },
-                'text': 'Hello World!'
+                'text': 'Hello World!',
+                'count': 0
             })
             app.on('buttonB-topic', (m) => { app.data.buttonB.count++ })
 

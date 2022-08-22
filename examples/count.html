@@ -1,0 +1,21 @@
+<html>
+  <body>
+    <div id="my-app">
+      <p>This is not working because the values of the root object (this.data) are added to the eval scope NOT the root object it self.
+         The proxy of the root object can not register any changes.</p>
+      <div style="font-family:'Lucida Console', monospace">
+        const context = {...this.data, ...functions, ...localScope}
+      </div>
+      <div style="font-family:'Lucida Console', monospace">
+        return evalWith(context, code)
+      </div>
+      <button cn:click="count++">{{ count }}</button>
+      <p>This is works because are accessing the property of a proxied object</p>
+      <button cn:click="with_proxy.count++">{{ with_proxy.count }}</button>
+    </div>
+    <script type="module">
+      import {mount} from '../cn.js'
+      const app = mount('#my-app', {  count: 0, with_proxy: { count: 0 }})
+    </script>
+  </body>
+</html>

@@ -88,7 +88,7 @@ function utilizeObject(updateCallback, obj, path = "") {
         }
     }
 
-    return new Proxy(obj, new DataHandler(path, updateCallback));
+    return new Proxy(obj, new DataHandler(path, updateCallback))
 }
 
 class AbstractTemplate {
