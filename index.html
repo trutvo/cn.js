@@ -12,31 +12,31 @@
             <h1>This is cn.js</h1>
             <p>Chuck Norris would never use a Java Script Framework, he would write his own ;-)</p>
             <div>
-                <button cn:click="buttonA.count++">{{ buttonA.name }} +</button>
-                <button cn:click="buttonA.count--">{{ buttonA.name }} -</button>
+                <button cn:click="data.buttonA.count++">{{ data.buttonA.name }} +</button>
+                <button cn:click="data.buttonA.count--">{{ data.buttonA.name }} -</button>
             </div>
             <p>
-                You clicked the "{{ buttonA.name }}" <span class="highlight">{{ buttonA.count }}</span> times!
+                You clicked the "{{ data.buttonA.name }}" <span class="highlight">{{ data.buttonA.count }}</span> times!
             </p>
             <p>
-                <span cn:if="buttonA.count % 2 == 0">Count of "{{ buttonA.name }}" is even</span>
-                <span cn:if="buttonA.count % 2 == 1">Count of "{{ buttonA.name }}" is odd</span>
+                <span cn:if="data.buttonA.count % 2 == 0">Count of "{{ data.buttonA.name }}" is even</span>
+                <span cn:if="data.buttonA.count % 2 == 1">Count of "{{ data.buttonA.name }}" is odd</span>
             </p>
             <div>
-                <button cn:click="to('buttonB-topic', 'hello1')">{{ buttonB.name }} - {{ buttonB.count }}</button>
+                <button cn:click="to('buttonB-topic', 'hello1')">{{ data.buttonB.name }} - {{ data.buttonB.count }}</button>
             </div>
             <p>
-                Here is a list with {{ buttonA.count }} elements:
-                <ul cn:for="range(0, buttonA.count)" cn:for-var="c">
-                    <li>this line was added after the "{{ buttonA.name }}" was pressed the {{ c + 1 }} times 
-                        <span cn:for="range(0, c)"> {{ it * buttonB.count }}</li>
+                Here is a list with {{ data.buttonA.count }} elements:
+                <ul cn:for="range(0, data.buttonA.count)" cn:for-var="c">
+                    <li>this line was added after the "{{ data.buttonA.name }}" was pressed the {{ c + 1 }} times 
+                        <span cn:for="range(0, c)"> {{ it * data.buttonB.count }}</li>
                 </ul>
             </p>
             <p>
                 <span>
-                    This is a text: <span class="highlight">{{ text }}</span>
+                    This is a text: <span class="highlight">{{ data.text }}</span>
                 </span>
-                <button cn:click="count++">Doenst work :-( - {{ count }}</button>
+                <button cn:click="data.count++">{{ data.count }}</button>
                 
             </p>
             <p>

@@ -295,7 +295,8 @@ class App {
             range: range
         }
 
-        const context = {...this.data, ...functions, ...localScope}
+        const data = { data: this.data }
+        const context = {...data, ...functions, ...localScope}
         return evalWith(context, code)
     }
 

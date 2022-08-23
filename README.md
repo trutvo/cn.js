@@ -11,8 +11,8 @@ Example:
     <body>
         <div id="my-app">
             <h1>This is cn.js</h1>
-            <button cn:click="count++">{{ count }}</button>
-            <span cn:if="count % 2 == 0">Count is even</span>
+            <button cn:click="data.count++">{{ data.count }}</button>
+            <span cn:if="data.count % 2 == 0">Count is even</span>
         </div>
         <script type="module">
             import {mount} from './cn.js'
