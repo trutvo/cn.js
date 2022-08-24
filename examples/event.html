@@ -1,11 +1,6 @@
 <html>
     <head>
-        <style>
-            .highlight {
-                font: 1rem monospace;
-                font-weight: bold;
-            }
-        </style>
+        <link href="example.css" rel="stylesheet">
     </head>
     <body>
         <div id="app">
@@ -14,6 +9,9 @@
                     Do some alerting
                 </button>
             </p>
+      <div class="code">
+{{ data.code }}
+      </div>
         </div>
 
         <script type="module">
@@ -27,6 +25,9 @@
 
             const app = mount('#app')
             window.alertService = new AlertService()
+
+            import {loadPageCode} from './example-utils.js'
+            loadPageCode((text) => app.data.code = text)
         </script>
     </body>
 </html>

@@ -1,11 +1,20 @@
 <html>
+  <head>
+    <link href="example.css" rel="stylesheet">
+  </head>
   <body>
     <div id="my-app">
       <button cn:click="data.count++">[ {{ data.count }} ]</button>
+      <div class="code">
+{{ data.code }}
+      </div>
     </div>
     <script type="module">
       import {mount} from '../cn.js'
       const app = mount('#my-app', {  count: 0 })
+      
+      import {loadPageCode} from './example-utils.js'
+      loadPageCode((text) => app.data.code = text)
     </script>
   </body>
 </html>

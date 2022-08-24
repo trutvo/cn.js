@@ -1,11 +1,6 @@
 <html>
     <head>
-        <style>
-            .highlight {
-                font: 1rem monospace;
-                font-weight: bold;
-            }
-        </style>
+        <link href="example.css" rel="stylesheet">
     </head>
     <body>
         <div id="app">
@@ -19,6 +14,9 @@
                     <li>Flutes: {{ data.store.instrument.flute.count }}</li>
                 </ul>
             </p>
+            <div class="code">
+{{ data.code }}
+            </div>
         </div>
 
         <script type="module">
@@ -32,10 +30,15 @@
                         drumset: { count: 2},
                         flute: { count: 40}
                     }
-                }
+                },
+                code: "" 
             }
             
             const app = mount('#app', data)
+
+
+            import {loadPageCode} from './example-utils.js'
+            loadPageCode((text) => app.data.code = text)
         </script>
     </body>
 </html>
