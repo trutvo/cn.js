@@ -229,7 +229,9 @@ class App {
         let textNode
         let templates = []
         while (textNode = iter.nextNode()) {
-            templates = templates.concat(this.createTextTemplates(textNode, localScope))
+            if(!isNestedInFlowNode(node, textNode)) {
+              templates = templates.concat(this.createTextTemplates(textNode, localScope))
+            }
         }
 
         return templates
