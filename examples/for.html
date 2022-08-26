@@ -1,0 +1,17 @@
+<html>
+  <body>
+    <div id="my-app">
+      <button cn:click="data.count++">[ {{ data.count }} ]</button>
+      <div cn:for="range(0, data.count)" cn:for-var="row">
+         <span>
+           <div cn:for="range(0, data.count)"><span>o</span>
+         </span>
+      </div>
+      </div>
+    </div>
+    <script type="module">
+      import {mount} from '../cn.js'
+      const app = mount('#my-app', {  count: 0 })
+    </script>
+  </body>
+</html>
