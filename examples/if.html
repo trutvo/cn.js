@@ -1,0 +1,15 @@
+<html>
+  <body>
+    <div id="my-app">
+      <button cn:click="data.count++">[ {{ data.count }} ]</button>
+      <p>
+        <span cn:if="data.count % 2 == 0">count is even</span>
+        <span cn:if="data.count % 2 == 1">count is odd</span>
+      </p>
+    </div>
+    <script type="module">
+      import {mount} from '../cn.js'
+      const app = mount('#my-app', {  count: 0 })
+    </script>
+  </body>
+</html>
